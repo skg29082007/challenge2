@@ -9,9 +9,10 @@
     content="default-src 'self';
              connect-src 'self' ws: wss:;
              font-src 'self' https://fonts.gstatic.com data:;
-             img-src 'self' data:;
+             img-src 'self' data: https://i.ytimg.com;
              script-src 'self' 'unsafe-inline';
              style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+             frame-src https://www.youtube-nocookie.com;
              frame-ancestors *;
              base-uri 'self';" />
   <title>ElectEd · Understand How Elections Work</title>
@@ -19,6 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block" rel="stylesheet" />
 
   <style>
     /* ===== Design Tokens ===== */
@@ -317,6 +319,64 @@
     .chat-input button:hover:not(:disabled){background:var(--primary-2)}
     .chat-input button:disabled{opacity:.5;cursor:not-allowed}
 
+    /* ===== Material Symbols sizing ===== */
+    .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 24;font-size:18px;vertical-align:-3px;line-height:1}
+
+    /* ===== Videos / Watch & Learn ===== */
+    .videos-section{background:#fff}
+    .videos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+    .video-card{
+      background:var(--card);border-radius:var(--radius);overflow:hidden;
+      box-shadow:var(--shadow);transition:transform var(--t),box-shadow var(--t);
+      display:flex;flex-direction:column;
+    }
+    .video-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+    .video-frame{position:relative;aspect-ratio:16/9;background:#0f2944;width:100%}
+    .video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+    .video-meta{padding:1rem 1.1rem 1.2rem}
+    .video-meta h3{font-size:1.05rem;margin:0 0 .2rem}
+    .video-meta p{color:var(--muted);font-size:.88rem;margin:0}
+    .youtube-badge{
+      display:inline-flex;align-items:center;gap:.4rem;background:#fff1f1;color:#c0392b;
+      padding:.25rem .6rem;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:.6rem;
+    }
+
+    /* ===== Modal ===== */
+    .modal{
+      position:fixed;inset:0;background:rgba(15,41,68,.55);
+      display:none;align-items:center;justify-content:center;z-index:300;padding:1rem;
+      animation:fadeIn .2s ease;
+    }
+    .modal.open{display:flex}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal-card{
+      background:#fff;max-width:520px;width:100%;border-radius:var(--radius);
+      box-shadow:var(--shadow-lg);padding:1.6rem;position:relative;
+    }
+    .modal-card h3{display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem}
+    .modal-card .gemini-badge{margin-bottom:1rem}
+    .modal-card p{color:var(--text);font-size:.98rem;margin:0;line-height:1.55}
+    .modal-close{
+      position:absolute;top:.65rem;right:.65rem;width:36px;height:36px;border-radius:8px;
+      background:transparent;color:var(--muted);font-size:1.4rem;cursor:pointer;
+    }
+    .modal-close:hover{background:rgba(0,0,0,.06);color:var(--text)}
+    .modal-loading{display:flex;align-items:center;gap:.5rem;color:var(--muted);font-size:.92rem}
+    .spinner{
+      width:16px;height:16px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--primary);
+      animation:spin .8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .term-card{position:relative}
+    .explain-btn{
+      display:inline-flex;align-items:center;gap:.3rem;background:transparent;color:var(--primary);
+      padding:.3rem .6rem;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;
+      border:1px solid var(--border);transition:all var(--t);margin-top:.5rem;
+    }
+    .explain-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .explain-btn:disabled{opacity:.5;cursor:wait}
+
     /* ===== Glossary ===== */
     .glossary-section{background:var(--bg)}
     .search-wrap{position:relative;max-width:540px;margin:0 0 1.2rem}
@@ -473,6 +533,7 @@
           <li><a href="#home" data-section="home">Home</a></li>
           <li><a href="#timeline" data-section="timeline">Timeline</a></li>
           <li><a href="#quiz" data-section="quiz">Quiz</a></li>
+          <li><a href="#videos" data-section="videos">Videos</a></li>
           <li><a href="#assistant" data-section="assistant">Assistant</a></li>
           <li><a href="#glossary" data-section="glossary">Glossary</a></li>
           <li><a href="#stats" data-section="stats">Stats</a></li>
@@ -487,6 +548,7 @@
     <a href="#home">Home</a>
     <a href="#timeline">Timeline</a>
     <a href="#quiz">Quiz</a>
+    <a href="#videos">Videos</a>
     <a href="#assistant">Assistant</a>
     <a href="#glossary">Glossary</a>
     <a href="#stats">Stats</a>
@@ -567,6 +629,20 @@
           </div>
         </div>
         <div class="quiz-card reveal" id="quizCard" role="region" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ============== WATCH & LEARN (YouTube embeds) ============== -->
+    <section id="videos" class="videos-section" aria-labelledby="videos-title">
+      <div class="container">
+        <div class="section-title reveal">
+          <div>
+            <span class="eyebrow"><span class="material-symbols-rounded" aria-hidden="true">smart_display</span> Watch & learn</span>
+            <h2 id="videos-title">Civic Education Videos</h2>
+            <p style="color:var(--muted);max-width:640px;margin-top:.4rem">Hand-picked civic education videos from YouTube to help visualize how elections work.</p>
+          </div>
+        </div>
+        <div class="videos-grid reveal" id="videosGrid"></div>
       </div>
     </section>
 
@@ -653,6 +729,16 @@
       </div>
     </section>
   </main>
+
+  <!-- ============== AI EXPLAIN MODAL ============== -->
+  <div class="modal" id="explainModal" role="dialog" aria-modal="true" aria-labelledby="explainTitle" aria-hidden="true">
+    <div class="modal-card">
+      <button class="modal-close" id="explainClose" aria-label="Close explanation">✕</button>
+      <h3 id="explainTitle"><span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span> <span id="explainTerm">Term</span></h3>
+      <div class="gemini-badge">✦ Explained by Google Gemini</div>
+      <div id="explainBody"><div class="modal-loading"><span class="spinner" aria-hidden="true"></span> Generating a friendly explanation…</div></div>
+    </div>
+  </div>
 
   <!-- ============== FOOTER ============== -->
   <footer>
@@ -1033,10 +1119,22 @@
         return;
       }
       filtered.forEach(([term,cat,def], i) => {
+        const explainBtn = el("button",{
+          type:"button",
+          class:"explain-btn",
+          "aria-label":`Explain ${term} with AI`,
+          onclick: () => openExplainModal(term, def)
+        },
+          el("span",{class:"material-symbols-rounded","aria-hidden":"true"}, "auto_awesome"),
+          document.createTextNode(" Explain with AI")
+        );
         const card = el("article",{class:"term-card",style:`opacity:0;transform:translateY(8px);transition:opacity .4s ease ${i*30}ms,transform .4s ease ${i*30}ms`},
           el("h3",{}, term),
           el("p",{}, def),
-          el("span",{class:"pill"}, cat)
+          el("div",{style:"display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap"},
+            el("span",{class:"pill"}, cat),
+            explainBtn
+          )
         );
         grid.append(card);
         requestAnimationFrame(() => { card.style.opacity = "1"; card.style.transform = "none"; });
@@ -1139,13 +1237,104 @@
       sections.forEach(s => navObs.observe(s));
     }
 
+    /* ============== VIDEOS (YouTube embeds) ============== */
+    const VIDEOS = [
+      {id:"OUS9mM8Xbbw", title:"The Trouble with the Electoral College", desc:"CGP Grey's classic, clear breakdown of how the Electoral College works and its quirks."},
+      {id:"s7tWHJfhiyo", title:"The Problems with First Past the Post Voting", desc:"How the most common voting system actually works — explained with cute animals."},
+      {id:"l8XOZJkozfI", title:"Politics in the Animal Kingdom: STV", desc:"An accessible explainer on Single Transferable Vote and proportional representation."}
+    ];
+    function renderVideos(){
+      const grid = $("#videosGrid");
+      if (!grid) return;
+      VIDEOS.forEach(v => {
+        const frame = el("div",{class:"video-frame"});
+        const iframe = el("iframe",{
+          src:`https://www.youtube-nocookie.com/embed/${v.id}?rel=0&modestbranding=1`,
+          title:v.title,
+          loading:"lazy",
+          referrerpolicy:"strict-origin-when-cross-origin",
+          allow:"accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+          allowfullscreen:""
+        });
+        frame.append(iframe);
+        const meta = el("div",{class:"video-meta"},
+          el("h3",{}, v.title),
+          el("p",{}, v.desc),
+          el("span",{class:"youtube-badge"},
+            el("span",{class:"material-symbols-rounded","aria-hidden":"true"}, "play_circle"),
+            "YouTube"
+          )
+        );
+        grid.append(el("article",{class:"video-card"}, frame, meta));
+      });
+    }
+
+    /* ============== AI EXPLAIN MODAL ============== */
+    const explainCache = new Map();
+    let lastFocusBeforeModal = null;
+    function openExplainModal(term, definition){
+      const modal = $("#explainModal");
+      const body = $("#explainBody");
+      $("#explainTerm").textContent = term;
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden","false");
+      lastFocusBeforeModal = document.activeElement;
+      $("#explainClose").focus();
+
+      if (explainCache.has(term)){
+        body.innerHTML = "";
+        body.append(el("p",{}, explainCache.get(term)));
+        return;
+      }
+      body.innerHTML = "";
+      body.append(el("div",{class:"modal-loading"},
+        el("span",{class:"spinner","aria-hidden":"true"}),
+        document.createTextNode(" Generating a friendly explanation…")
+      ));
+
+      fetch("/api/glossary/explain",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ term, definition })
+      })
+        .then(r => r.ok ? r.json() : Promise.reject(new Error("explain failed")))
+        .then(data => {
+          const text = (data && data.explanation) || "I couldn't generate an explanation right now. Please try again.";
+          explainCache.set(term, text);
+          body.innerHTML = "";
+          body.append(el("p",{}, text));
+        })
+        .catch(() => {
+          body.innerHTML = "";
+          body.append(el("p",{style:"color:var(--muted)"},
+            "The AI explainer is unavailable right now. The definition above gives you the core idea — you can also ask the assistant directly."
+          ));
+        });
+    }
+    function closeExplainModal(){
+      const modal = $("#explainModal");
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden","true");
+      if (lastFocusBeforeModal && lastFocusBeforeModal.focus) lastFocusBeforeModal.focus();
+    }
+    function initExplainModal(){
+      const modal = $("#explainModal");
+      $("#explainClose").addEventListener("click", closeExplainModal);
+      modal.addEventListener("click", e => { if (e.target === modal) closeExplainModal(); });
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && modal.classList.contains("open")) closeExplainModal();
+      });
+    }
+
     /* ============== BOOT ============== */
     document.addEventListener("DOMContentLoaded", () => {
       initNav();
       renderTimeline();
       renderQuiz();
+      renderVideos();
       initChat();
       initGlossary();
+      initExplainModal();
       renderMetrics();
       renderBars();
       initObservers();

@@ -1,49 +1,66 @@
-# ElectEd
+# ElectEd · Understand How Elections Work
 
-A beautiful, fully responsive single-page election education website built for the **PromptWars Virtual** hackathon.
+An interactive, AI-powered education site that explains how elections work — built for **PromptWars Virtual 2025**.
 
-Judged on: Code Quality, Security, Efficiency, Testing, Accessibility, Google Services.
+🌐 **Repo:** https://github.com/skg29082007/challenge2
 
-## Features
+---
 
-- **Hero** with a clear call-to-action
-- **6-phase election timeline** with scroll reveal animations
-- **10-question interactive quiz** with instant scoring & explanations
-- **AI Assistant** powered by Google Gemini (`gemini-2.5-flash`) — answers nonpartisan election questions
-- **22-term glossary** with live search & filtering
-- **World stats** with animated bar chart and donut chart
-- Sticky responsive navbar, mobile menu, accessible footer
+## What's inside
 
-## Tech Stack
+| Section | Description |
+|---|---|
+| **Hero** | Animated landing with key stats (6 phases, 22 terms, 10 questions). |
+| **Timeline** | Six-phase election walkthrough with a vertical timeline. |
+| **Civic Quiz** | Ten-question quiz with explanations and a final score. |
+| **Watch & Learn** | Curated YouTube videos (CGP Grey) embedded via youtube-nocookie. |
+| **AI Assistant** | Chat with **Google Gemini** for plain-language answers about voting. |
+| **Glossary** | Searchable, filterable glossary of 22 election terms. Each term has an **"Explain with AI"** button that calls Gemini for a kid-friendly explanation. |
+| **World Stats** | Animated counters, regional turnout bars, and a methods donut chart. |
 
-- **Frontend**: pure HTML / CSS / vanilla JS (single `index.html`) served by Vite
-- **Backend**: Express (`@workspace/api-server`) exposing `POST /api/chat`, which proxies messages to Google Gemini via the Replit AI Integrations service — **no API key is exposed to the browser**
-- **Monorepo**: pnpm workspaces, TypeScript
+## Google Services used
 
-## Security & Accessibility
+- **Google Gemini** — Both the chat assistant (`/api/chat`, `/api/chat/stream`) and the on-demand glossary explainer (`/api/glossary/explain`) are powered by Gemini via the Replit AI Integrations proxy.
+- **Google Fonts** — Playfair Display + Inter for the typography system.
+- **Google Material Symbols** — Iconography for the AI features and video badges.
+- **YouTube** — Civic-education videos embedded via `youtube-nocookie.com` for privacy.
 
-- Strict Content Security Policy via `<meta>` tag
-- WCAG 2.1 AA: skip link, visible focus rings, semantic landmarks, `prefers-reduced-motion` support
-- Zod input validation on the chat endpoint, 2000-char user input cap
-- Gemini API key kept server-side via Replit's AI Integrations proxy
+## Tech stack
 
-## Project Structure
+- **Frontend:** Single-file vanilla HTML / CSS / JS (`artifacts/elected/index.html`) — zero framework, fast first paint, accessible.
+- **Backend:** Express + TypeScript (`artifacts/api-server/`) with `pino-http` logging, `helmet`, `compression`, and Zod request validation.
+- **AI:** `@google/genai` via Replit's Gemini AI integration proxy.
+- **Tests:** Vitest + Supertest (24 tests covering health, chat, streaming, glossary explain, validation, and error paths).
+- **Monorepo:** pnpm workspace with shared TS configs and project references.
 
-```
-artifacts/
-  elected/         # Single-file static site (index.html)
-  api-server/      # Express + Gemini chat proxy (POST /api/chat)
-  mockup-sandbox/  # Vite preview server for component variants
-lib/
-  integrations-gemini-ai/   # Gemini client wrapper
-```
+## Security & quality
 
-## Running locally
+- Strict Content Security Policy (`default-src 'self'`, `frame-src https://www.youtube-nocookie.com`).
+- Helmet, response compression, 100 KB JSON body limit.
+- Zod validation on every API endpoint with structured 400 responses.
+- WCAG 2.1 AA: skip links, ARIA live regions, keyboard-navigable modal with focus restore, high-contrast palette.
+- No third-party trackers, no cookies in YouTube embeds.
+
+## Local development
 
 ```bash
 pnpm install
-pnpm --filter @workspace/api-server run dev   # backend
-pnpm --filter @workspace/elected     run dev  # frontend
+pnpm --filter @workspace/elected run dev          # static site (port from $PORT)
+pnpm --filter @workspace/api-server run dev       # API + Gemini proxy
+pnpm --filter @workspace/api-server run test      # vitest suite
 ```
 
-Built on Replit.
+The site assumes the API server is reachable at the same origin (path-based routing handles this automatically in the Replit workspace).
+
+## Project structure
+
+```
+artifacts/
+├── elected/          # ElectEd single-page site (HTML + assets)
+└── api-server/       # Express API: /api/chat, /api/chat/stream, /api/glossary/explain
+    └── src/__tests__/    # Vitest test suite
+```
+
+---
+
+Built with care for civic literacy.
