@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "ElectEd"
+version = "1.0.0"
+id = "artifacts/elected"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22113
+
+[services.development]
+run = "pnpm --filter @workspace/elected run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/elected", "run", "build" ]
+publicDir = "artifacts/elected/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22113"
+BASE_PATH = "/"

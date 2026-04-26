@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.cache/
+.upm/
+.pnpm-store/
+.turbo/
+.next/
+*.log
+.env
+.env.local
+.DS_Store

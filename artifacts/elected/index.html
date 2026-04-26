@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ElectEd — an interactive, AI-powered guide to understanding the election process, timelines and steps. Built for PromptWars Virtual." />
+  <meta name="theme-color" content="#1a3c5e" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self';
+             connect-src 'self' ws: wss:;
+             font-src 'self' https://fonts.gstatic.com data:;
+             img-src 'self' data:;
+             script-src 'self' 'unsafe-inline';
+             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+             frame-ancestors *;
+             base-uri 'self';" />
+  <title>ElectEd · Understand How Elections Work</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%231a3c5e'/><text x='50%25' y='58%25' text-anchor='middle' font-size='38' font-family='Georgia,serif' fill='%23e8a020'>E</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===== Design Tokens ===== */
+    :root{
+      --primary:#1a3c5e;
+      --primary-2:#0f2944;
+      --accent:#e8a020;
+      --accent-2:#2a7d4f;
+      --bg:#f5f2eb;
+      --card:#ffffff;
+      --text:#1a1a2e;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --danger:#c0392b;
+      --purple:#6c3483;
+      --shadow:0 2px 16px rgba(0,0,0,0.08);
+      --shadow-lg:0 12px 36px rgba(0,0,0,0.12);
+      --radius:16px;
+      --radius-sm:10px;
+      --t:.2s ease;
+      --serif:"Playfair Display", Georgia, serif;
+      --sans:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --container:1180px;
+    }
+
+    /* ===== Reset & base ===== */
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:var(--bg);
+      line-height:1.6;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+    h1,h2,h3,h4{font-family:var(--serif);color:var(--primary);line-height:1.15;margin:0 0 .5em}
+    h1{font-size:clamp(2.4rem,5vw,4rem);font-weight:800;letter-spacing:-.01em}
+    h2{font-size:clamp(1.8rem,3.4vw,2.6rem);font-weight:700}
+    h3{font-size:1.25rem;font-weight:700}
+    p{margin:0 0 1rem}
+    a{color:var(--primary);text-decoration:none;transition:color var(--t)}
+    a:hover{color:var(--accent)}
+    img,svg{display:block;max-width:100%}
+    button{font-family:inherit;cursor:pointer;border:none;background:none}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+    /* ===== Skip Link (a11y) ===== */
+    .skip-link{
+      position:absolute;left:-9999px;top:0;background:var(--primary);color:#fff;
+      padding:.75rem 1rem;border-radius:0 0 8px 0;z-index:9999;font-weight:600;
+    }
+    .skip-link:focus{left:0}
+
+    /* ===== Container ===== */
+    .container{width:100%;max-width:var(--container);margin:0 auto;padding:0 1.25rem}
+
+    /* ===== Navbar ===== */
+    .nav{
+      position:fixed;top:0;left:0;right:0;z-index:100;
+      transition:background var(--t),box-shadow var(--t),padding var(--t);
+      padding:1rem 0;
+    }
+    .nav.scrolled{background:rgba(255,255,255,.96);box-shadow:0 1px 12px rgba(0,0,0,.08);backdrop-filter:saturate(160%) blur(8px);padding:.6rem 0}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+    .logo{font-family:var(--serif);font-size:1.6rem;font-weight:800;color:#fff;display:flex;align-items:center;gap:.25rem}
+    .nav.scrolled .logo{color:var(--primary)}
+    .nav-links{display:flex;gap:.25rem;align-items:center;list-style:none;margin:0;padding:0}
+    .nav-links a{
+      color:rgba(255,255,255,.92);font-weight:500;padding:.55rem .85rem;border-radius:8px;font-size:.95rem;
+      position:relative;min-height:44px;display:inline-flex;align-items:center;
+    }
+    .nav.scrolled .nav-links a{color:var(--text)}
+    .nav-links a:hover{color:#fff}
+    .nav.scrolled .nav-links a:hover{color:var(--primary)}
+    .nav-links a.active::after{
+      content:"";position:absolute;left:.85rem;right:.85rem;bottom:.35rem;height:2px;background:var(--accent);border-radius:2px;
+    }
+    .hamburger{
+      display:none;width:44px;height:44px;border-radius:8px;color:#fff;align-items:center;justify-content:center;font-size:1.5rem;
+      background:transparent;
+    }
+    .nav.scrolled .hamburger{color:var(--primary)}
+    .hamburger:hover{background:rgba(255,255,255,.08)}
+    .nav.scrolled .hamburger:hover{background:rgba(0,0,0,.05)}
+
+    /* Mobile nav overlay */
+    .mobile-nav{
+      position:fixed;inset:0;background:rgba(15,41,68,.98);z-index:200;
+      display:none;flex-direction:column;align-items:center;justify-content:center;gap:1rem;
+    }
+    .mobile-nav.open{display:flex}
+    .mobile-nav a{
+      color:#fff;font-family:var(--serif);font-size:1.6rem;font-weight:600;padding:.75rem 1rem;
+    }
+    .mobile-nav a:hover{color:var(--accent)}
+    .mobile-nav .close{
+      position:absolute;top:1rem;right:1rem;width:48px;height:48px;color:#fff;font-size:1.6rem;
+      background:rgba(255,255,255,.06);border-radius:10px;
+    }
+
+    /* ===== Hero ===== */
+    .hero{
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,.08) 1px, transparent 0) 0 0/22px 22px,
+        linear-gradient(135deg,#1a3c5e 0%,#0f2944 60%,#1a5276 100%);
+      color:#fff;
+      display:flex;align-items:center;justify-content:center;
+      position:relative;text-align:center;padding:7rem 1rem 4rem;
+      overflow:hidden;
+    }
+    .hero::before{
+      content:"";position:absolute;inset:0;
+      background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.35) 100%);
+      pointer-events:none;
+    }
+    .hero-content{position:relative;z-index:2;max-width:900px}
+    .badge{
+      display:inline-flex;align-items:center;gap:.4rem;
+      background:rgba(232,160,32,.15);color:#ffd58a;
+      padding:.45rem 1rem;border-radius:999px;font-size:.85rem;font-weight:600;
+      border:1px solid rgba(232,160,32,.3);margin-bottom:1.5rem;
+    }
+    .hero h1{color:#fff;margin-bottom:1rem}
+    .hero .subtitle{font-size:clamp(1rem,1.6vw,1.2rem);color:rgba(255,255,255,.85);max-width:640px;margin:0 auto 2rem}
+    .hero-buttons{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+      padding:.95rem 1.6rem;border-radius:10px;font-weight:600;font-size:1rem;
+      transition:transform var(--t),background var(--t),color var(--t),box-shadow var(--t);
+      min-height:44px;cursor:pointer;text-decoration:none;border:2px solid transparent;
+    }
+    .btn-primary{background:var(--accent);color:#1a1a2e}
+    .btn-primary:hover{background:#f2b545;transform:translateY(-2px);box-shadow:0 10px 24px rgba(232,160,32,.35);color:#1a1a2e}
+    .btn-outline{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+    .btn-outline:hover{background:#fff;color:var(--primary)}
+    .scroll-indicator{
+      position:absolute;bottom:1.2rem;left:50%;transform:translateX(-50%);
+      color:rgba(255,255,255,.7);font-size:1.6rem;animation:bounce 2s infinite;
+    }
+    @keyframes bounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-12px)}}
+
+    /* Floating stats bar */
+    .stats-bar{
+      max-width:1100px;margin:2.5rem auto -3rem;background:#fff;color:var(--text);
+      border-radius:var(--radius);box-shadow:var(--shadow-lg);
+      display:grid;grid-template-columns:repeat(6,1fr);overflow:hidden;
+      position:relative;z-index:3;
+    }
+    .stats-bar > div{padding:1rem .8rem;text-align:center;border-right:1px solid var(--border);font-size:.9rem;font-weight:600}
+    .stats-bar > div:last-child{border-right:none}
+    .stats-bar strong{display:block;font-family:var(--serif);font-size:1.4rem;color:var(--primary);margin-bottom:.15rem}
+
+    /* ===== Section base ===== */
+    section{padding:6rem 0 4rem;scroll-margin-top:80px}
+    .section-title{
+      display:flex;align-items:center;gap:.85rem;margin-bottom:2.5rem;
+    }
+    .section-title::before{content:"";width:4px;height:42px;background:var(--accent);border-radius:2px;flex:none}
+    .section-title h2{margin:0}
+    .section-title .eyebrow{display:block;font-family:var(--sans);font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.25rem}
+
+    /* ===== Features Strip ===== */
+    .features{padding-top:7rem}
+    .features-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;
+    }
+    .feature-card{
+      background:var(--card);border-radius:var(--radius);padding:1.6rem 1.4rem;
+      box-shadow:var(--shadow);transition:transform var(--t),box-shadow var(--t),border-color var(--t);
+      border:2px solid transparent;
+    }
+    .feature-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:var(--shadow-lg)}
+    .feature-icon{font-size:2rem;margin-bottom:.6rem}
+    .feature-card h3{margin-bottom:.35rem}
+    .feature-card p{color:var(--muted);font-size:.95rem;margin:0}
+
+    /* ===== Timeline ===== */
+    .timeline{position:relative;max-width:980px;margin:0 auto;padding:1rem 0}
+    .timeline::before{
+      content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;
+      background:linear-gradient(180deg,var(--accent),var(--accent-2));
+      transform:translateX(-50%);border-radius:3px;opacity:.6;
+    }
+    .tl-item{
+      position:relative;display:grid;grid-template-columns:1fr 60px 1fr;
+      align-items:center;gap:1rem;margin-bottom:2.5rem;
+    }
+    .tl-card{
+      background:var(--card);border-radius:var(--radius);padding:1.4rem 1.5rem;
+      box-shadow:var(--shadow);border-left:4px solid var(--phase);
+    }
+    .tl-card .date{display:inline-block;font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem}
+    .tl-card h3{margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem}
+    .tl-card p{color:var(--muted);margin:0;font-size:.95rem}
+    .tl-circle{
+      width:50px;height:50px;border-radius:50%;background:var(--phase);color:#fff;
+      display:flex;align-items:center;justify-content:center;font-weight:700;
+      font-family:var(--serif);font-size:1.2rem;margin:0 auto;
+      box-shadow:0 0 0 6px var(--bg),0 0 0 8px var(--phase);position:relative;z-index:2;
+    }
+    .tl-spacer{display:block}
+    .tl-item:nth-child(even) > .tl-card{order:3}
+    .tl-item:nth-child(even) > .tl-spacer{order:1}
+    .tl-item:nth-child(odd)  > .tl-spacer{order:3}
+
+    /* ===== Quiz ===== */
+    .quiz-section{
+      background:linear-gradient(135deg,#0f2944,#1a3c5e);color:#fff;position:relative;
+    }
+    .quiz-section h2{color:#fff}
+    .quiz-section .section-title .eyebrow{color:#ffd58a}
+    .quiz-card{
+      background:#fff;color:var(--text);max-width:680px;margin:0 auto;
+      padding:2rem;border-radius:var(--radius);box-shadow:var(--shadow-lg);
+    }
+    .progress{
+      display:flex;justify-content:space-between;align-items:center;
+      font-size:.85rem;color:var(--muted);font-weight:600;margin-bottom:.6rem;
+    }
+    .progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:1.5rem}
+    .progress-bar > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .4s ease;border-radius:3px}
+    .question{font-size:1.25rem;font-weight:700;color:var(--primary);font-family:var(--serif);margin-bottom:1.25rem;line-height:1.35}
+    .options{display:grid;gap:.6rem;margin-bottom:1rem}
+    .option{
+      width:100%;text-align:left;padding:.95rem 1.1rem;border-radius:10px;
+      background:var(--bg);border:2px solid var(--border);transition:all var(--t);
+      font-weight:500;color:var(--text);min-height:44px;
+    }
+    .option:hover:not(:disabled){border-color:var(--accent);background:#fff}
+    .option.correct{background:#e8f5e9;border-color:var(--accent-2);color:#1b4d2e}
+    .option.wrong{background:#fdecea;border-color:var(--danger);color:#7a1f15}
+    .option:disabled{cursor:default}
+    .explanation{
+      background:#fff7e6;border-left:4px solid var(--accent);padding:.9rem 1rem;
+      border-radius:8px;margin:1rem 0 .5rem;font-size:.95rem;color:#5b3d12;
+    }
+    .quiz-actions{display:flex;justify-content:flex-end;margin-top:1rem}
+    .result-card{text-align:center;padding:1rem 0}
+    .result-emoji{font-size:4rem;margin:.5rem 0}
+    .result-score{font-family:var(--serif);font-size:2.4rem;color:var(--primary);margin-bottom:.5rem}
+    .result-msg{color:var(--muted);margin-bottom:1.2rem}
+
+    /* ===== AI Assistant ===== */
+    .ai-section{background:#fff}
+    .ai-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:2.4rem;align-items:stretch}
+    .ai-info h2{margin-bottom:.75rem}
+    .ai-subtitle{color:var(--muted);font-size:1.05rem;margin-bottom:1.2rem}
+    .gemini-badge{
+      display:inline-flex;align-items:center;gap:.5rem;background:#f1f5fb;color:var(--primary);
+      padding:.45rem .8rem;border-radius:999px;font-weight:600;font-size:.85rem;border:1px solid #d8e2f0;margin-bottom:1.2rem;
+    }
+    .ai-features{list-style:none;padding:0;margin:0;display:grid;gap:.55rem}
+    .ai-features li{display:flex;align-items:center;gap:.55rem;color:var(--text);font-weight:500}
+    .ai-features li::before{content:"✓";display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;background:var(--accent-2);color:#fff;border-radius:50%;font-size:.8rem;font-weight:700}
+
+    .chat{
+      display:flex;flex-direction:column;background:var(--bg);border-radius:var(--radius);
+      box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border);min-height:520px;
+    }
+    .chat-header{
+      padding:.9rem 1.1rem;background:var(--primary);color:#fff;font-weight:600;
+      display:flex;align-items:center;gap:.5rem;
+    }
+    .chat-header .dot{width:10px;height:10px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+    .chat-messages{
+      flex:1;max-height:480px;overflow-y:auto;padding:1.2rem;display:flex;flex-direction:column;gap:.8rem;
+    }
+    .msg{max-width:80%;padding:.75rem 1rem;border-radius:14px;font-size:.95rem;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+    .msg.bot{align-self:flex-start;background:var(--primary);color:#fff;border-bottom-left-radius:4px}
+    .msg.user{align-self:flex-end;background:var(--accent);color:#1a1a2e;border-bottom-right-radius:4px;font-weight:500}
+    .typing{display:inline-flex;gap:4px;align-items:center;padding:.3rem 0}
+    .typing span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.85);animation:typing 1.2s infinite}
+    .typing span:nth-child(2){animation-delay:.15s}
+    .typing span:nth-child(3){animation-delay:.3s}
+    @keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+    .quick-prompts{display:flex;flex-wrap:wrap;gap:.4rem;padding:.8rem 1.1rem 0}
+    .chip{
+      background:#fff;border:1px solid var(--border);color:var(--primary);
+      padding:.4rem .8rem;border-radius:999px;font-size:.82rem;font-weight:500;cursor:pointer;
+      transition:all var(--t);min-height:32px;
+    }
+    .chip:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .chat-input{display:flex;gap:.5rem;padding:.9rem 1.1rem 1.1rem;border-top:1px solid var(--border);background:#fff}
+    .chat-input input{
+      flex:1;padding:.7rem .9rem;border:1px solid var(--border);border-radius:10px;
+      font-size:.95rem;font-family:inherit;min-height:44px;
+    }
+    .chat-input input:focus{outline:none;border-color:var(--accent)}
+    .chat-input button{
+      background:var(--primary);color:#fff;padding:0 1.2rem;border-radius:10px;font-weight:600;min-height:44px;min-width:44px;
+      transition:background var(--t);
+    }
+    .chat-input button:hover:not(:disabled){background:var(--primary-2)}
+    .chat-input button:disabled{opacity:.5;cursor:not-allowed}
+
+    /* ===== Glossary ===== */
+    .glossary-section{background:var(--bg)}
+    .search-wrap{position:relative;max-width:540px;margin:0 0 1.2rem}
+    .search-wrap input{
+      width:100%;padding:.85rem 1rem .85rem 2.6rem;border-radius:999px;border:1px solid var(--border);
+      background:#fff;font-size:1rem;font-family:inherit;min-height:44px;box-shadow:var(--shadow);
+    }
+    .search-wrap input:focus{outline:none;border-color:var(--accent)}
+    .search-wrap::before{
+      content:"🔍";position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:1rem;opacity:.7;
+    }
+    .filters{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem}
+    .filter{
+      background:#fff;border:1px solid var(--border);color:var(--primary);
+      padding:.5rem 1rem;border-radius:999px;font-size:.85rem;font-weight:600;cursor:pointer;
+      transition:all var(--t);min-height:36px;
+    }
+    .filter:hover{border-color:var(--accent)}
+    .filter.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .glossary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+    .term-card{
+      background:#fff;border-radius:var(--radius);padding:1.2rem 1.25rem;box-shadow:var(--shadow);
+      transition:transform var(--t),box-shadow var(--t);
+    }
+    .term-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+    .term-card h3{font-family:var(--serif);font-size:1.1rem;margin-bottom:.4rem;color:var(--primary)}
+    .term-card p{color:var(--muted);font-size:.92rem;margin-bottom:.6rem}
+    .pill{
+      display:inline-block;background:rgba(232,160,32,.12);color:#a06a10;
+      padding:.2rem .6rem;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    }
+    .empty{text-align:center;padding:2rem;color:var(--muted);grid-column:1/-1}
+
+    /* ===== Stats ===== */
+    .stats-section{background:#fff}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:3rem}
+    .metric{
+      background:linear-gradient(135deg,#fff,#fbf8f1);
+      border-radius:var(--radius);padding:1.6rem 1.2rem;text-align:center;
+      box-shadow:var(--shadow);border-top:4px solid var(--accent);
+    }
+    .metric-value{font-family:var(--serif);font-size:2.6rem;font-weight:800;color:var(--primary);line-height:1;margin-bottom:.4rem}
+    .metric-label{color:var(--muted);font-weight:600;font-size:.9rem}
+
+    .charts-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:2rem;align-items:stretch}
+    .chart-card{
+      background:var(--bg);border-radius:var(--radius);padding:1.6rem;box-shadow:var(--shadow);
+    }
+    .chart-card h3{margin-bottom:1.2rem;font-family:var(--serif)}
+    .bar-row{display:grid;grid-template-columns:120px 1fr 50px;align-items:center;gap:.75rem;margin-bottom:.8rem}
+    .bar-row .label{font-weight:600;color:var(--text);font-size:.92rem}
+    .bar-track{background:#fff;height:18px;border-radius:9px;overflow:hidden;border:1px solid var(--border)}
+    .bar-fill{height:100%;width:0;border-radius:9px;transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+    .bar-row .pct{text-align:right;font-weight:700;color:var(--primary);font-size:.9rem}
+
+    .donut-wrap{display:flex;align-items:center;justify-content:center;gap:1.4rem;flex-wrap:wrap}
+    .donut{
+      --p1:42;--p2:38;--p3:14;--p4:6;
+      width:200px;height:200px;border-radius:50%;
+      background:conic-gradient(
+        var(--primary) 0 calc(var(--p1)*1%),
+        var(--accent-2) 0 calc((var(--p1)+var(--p2))*1%),
+        var(--accent) 0 calc((var(--p1)+var(--p2)+var(--p3))*1%),
+        var(--purple) 0 100%
+      );
+      position:relative;flex:none;box-shadow:var(--shadow);
+    }
+    .donut::after{
+      content:"100%";position:absolute;inset:18%;background:var(--bg);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-family:var(--serif);
+      font-weight:700;color:var(--primary);font-size:1.4rem;
+    }
+    .legend{list-style:none;padding:0;margin:0;display:grid;gap:.5rem}
+    .legend li{display:flex;align-items:center;gap:.55rem;font-size:.92rem;font-weight:500}
+    .legend .swatch{width:14px;height:14px;border-radius:3px;flex:none}
+
+    /* ===== Footer ===== */
+    footer{background:var(--primary-2);color:rgba(255,255,255,.85);padding:3.5rem 0 1.2rem}
+    footer .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:2rem;margin-bottom:2rem}
+    footer h4{color:#fff;font-family:var(--serif);font-size:1.05rem;margin-bottom:.8rem}
+    footer ul{list-style:none;padding:0;margin:0;display:grid;gap:.45rem}
+    footer a{color:rgba(255,255,255,.75)}
+    footer a:hover{color:var(--accent)}
+    .footer-tag{color:rgba(255,255,255,.65);max-width:280px}
+    .socials{display:flex;gap:.6rem;margin-top:1rem}
+    .socials a{
+      display:inline-flex;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.06);
+      align-items:center;justify-content:center;font-size:1.05rem;
+    }
+    .socials a:hover{background:var(--accent);color:#1a1a2e}
+    .copyright{
+      border-top:1px solid rgba(255,255,255,.1);padding-top:1.2rem;
+      text-align:center;font-size:.85rem;color:rgba(255,255,255,.55);
+    }
+
+    /* ===== Animations ===== */
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+    .reveal.in{opacity:1;transform:none}
+    .reveal-stagger > *{opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s ease}
+    .reveal-stagger.in > *{opacity:1;transform:none}
+    .reveal-stagger.in > *:nth-child(1){transition-delay:.05s}
+    .reveal-stagger.in > *:nth-child(2){transition-delay:.12s}
+    .reveal-stagger.in > *:nth-child(3){transition-delay:.19s}
+    .reveal-stagger.in > *:nth-child(4){transition-delay:.26s}
+    .reveal-stagger.in > *:nth-child(5){transition-delay:.33s}
+    .reveal-stagger.in > *:nth-child(6){transition-delay:.4s}
+
+    /* ===== Responsive ===== */
+    @media (max-width:1024px){
+      .ai-grid,.charts-grid{grid-template-columns:1fr}
+      .features-grid,.metrics{grid-template-columns:repeat(2,1fr)}
+      .stats-bar{grid-template-columns:repeat(3,1fr)}
+      .stats-bar > div:nth-child(3n){border-right:none}
+    }
+    @media (max-width:768px){
+      .nav-links{display:none}
+      .hamburger{display:inline-flex}
+      .stats-bar{grid-template-columns:repeat(2,1fr);margin:2rem auto -2rem}
+      .stats-bar > div{border-right:none;border-bottom:1px solid var(--border)}
+      .timeline::before{left:24px}
+      .tl-item{grid-template-columns:50px 1fr;gap:1rem}
+      .tl-spacer{display:none}
+      .tl-circle{margin:0}
+      .tl-item:nth-child(even) > .tl-card{order:initial}
+      .glossary-grid{grid-template-columns:1fr}
+      .bar-row{grid-template-columns:90px 1fr 44px;font-size:.85rem}
+      footer .footer-grid{grid-template-columns:1fr 1fr;gap:1.5rem}
+    }
+    @media (max-width:480px){
+      section{padding:4rem 0 2.5rem}
+      .features{padding-top:5rem}
+      .hero-buttons{flex-direction:column;width:100%}
+      .hero-buttons .btn{width:100%}
+      .quiz-card{padding:1.4rem}
+      .metrics{grid-template-columns:1fr 1fr}
+      footer .footer-grid{grid-template-columns:1fr}
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation:none!important;transition:none!important}
+      .reveal,.reveal-stagger > *{opacity:1!important;transform:none!important}
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- ============== NAVBAR ============== -->
+  <header class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="#home" class="logo" aria-label="ElectEd home"><span>Elect</span><span aria-hidden="true">🗳️</span><span>Ed</span></a>
+      <nav aria-label="Primary">
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#home" data-section="home">Home</a></li>
+          <li><a href="#timeline" data-section="timeline">Timeline</a></li>
+          <li><a href="#quiz" data-section="quiz">Quiz</a></li>
+          <li><a href="#assistant" data-section="assistant">Assistant</a></li>
+          <li><a href="#glossary" data-section="glossary">Glossary</a></li>
+          <li><a href="#stats" data-section="stats">Stats</a></li>
+        </ul>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">☰</button>
+    </div>
+  </header>
+
+  <div class="mobile-nav" id="mobileNav" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+    <button class="close" id="closeMenu" aria-label="Close menu">✕</button>
+    <a href="#home">Home</a>
+    <a href="#timeline">Timeline</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#assistant">Assistant</a>
+    <a href="#glossary">Glossary</a>
+    <a href="#stats">Stats</a>
+  </div>
+
+  <main id="main">
+    <!-- ============== HERO ============== -->
+    <section class="hero" id="home" aria-labelledby="hero-title">
+      <div class="hero-content">
+        <span class="badge">🏆 PromptWars Virtual 2025</span>
+        <h1 id="hero-title">Understand How Elections Work</h1>
+        <p class="subtitle">Interactive. Educational. Powered by AI. A nonpartisan guide to every step of the democratic process.</p>
+        <div class="hero-buttons">
+          <a href="#timeline" class="btn btn-primary">Explore Timeline →</a>
+          <a href="#assistant" class="btn btn-outline">Ask AI Assistant</a>
+        </div>
+        <div class="stats-bar" role="list" aria-label="Site features">
+          <div role="listitem"><strong>6</strong>Phases</div>
+          <div role="listitem"><strong>22</strong>Terms</div>
+          <div role="listitem"><strong>10</strong>Questions</div>
+          <div role="listitem"><strong>AI</strong>Powered</div>
+          <div role="listitem"><strong>Global</strong>Stats</div>
+          <div role="listitem"><strong>Free</strong>Forever</div>
+        </div>
+      </div>
+      <div class="scroll-indicator" aria-hidden="true">↓</div>
+    </section>
+
+    <!-- ============== FEATURES STRIP ============== -->
+    <section class="features" aria-labelledby="features-title">
+      <div class="container">
+        <h2 id="features-title" class="visually-hidden" style="position:absolute;left:-9999px">What's inside</h2>
+        <div class="features-grid reveal-stagger reveal">
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">🗓️</div>
+            <h3>Timeline</h3>
+            <p>Walk through every election phase from filing to certification.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">🧠</div>
+            <h3>Quiz</h3>
+            <p>Test what you know with 10 carefully crafted civic questions.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">💬</div>
+            <h3>AI Chat</h3>
+            <p>Ask anything about voting and elections, get nonpartisan answers.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">📖</div>
+            <h3>Glossary</h3>
+            <p>22 essential terms — searchable and filterable by category.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== TIMELINE ============== -->
+    <section id="timeline" aria-labelledby="timeline-title">
+      <div class="container">
+        <div class="section-title reveal">
+          <div>
+            <span class="eyebrow">Step by step</span>
+            <h2 id="timeline-title">The Election Timeline</h2>
+          </div>
+        </div>
+        <div class="timeline" id="timelineList"></div>
+      </div>
+    </section>
+
+    <!-- ============== QUIZ ============== -->
+    <section id="quiz" class="quiz-section" aria-labelledby="quiz-title">
+      <div class="container">
+        <div class="section-title reveal">
+          <div>
+            <span class="eyebrow">Test yourself</span>
+            <h2 id="quiz-title">Civic Knowledge Quiz</h2>
+          </div>
+        </div>
+        <div class="quiz-card reveal" id="quizCard" role="region" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ============== AI ASSISTANT ============== -->
+    <section id="assistant" class="ai-section" aria-labelledby="ai-title">
+      <div class="container">
+        <div class="section-title reveal">
+          <div>
+            <span class="eyebrow">AI powered</span>
+            <h2 id="ai-title">Ask the ElectEd Assistant</h2>
+          </div>
+        </div>
+        <div class="ai-grid">
+          <div class="ai-info reveal">
+            <h2 style="font-size:1.6rem">Your Personal Election Guide</h2>
+            <p class="ai-subtitle">Powered by Google Gemini AI — friendly, simple explanations of any election concept.</p>
+            <div class="gemini-badge">✦ Google Gemini</div>
+            <ul class="ai-features">
+              <li>Instant answers in plain language</li>
+              <li>Strictly nonpartisan and neutral</li>
+              <li>Simple sentences, no jargon</li>
+              <li>Available 24/7 — free forever</li>
+            </ul>
+          </div>
+          <div class="chat reveal" aria-label="Chat with the ElectEd Assistant">
+            <div class="chat-header"><span class="dot" aria-hidden="true"></span> ElectEd Assistant</div>
+            <div class="chat-messages" id="chatMessages" aria-live="polite" aria-atomic="false"></div>
+            <div class="quick-prompts" id="quickPrompts"></div>
+            <form class="chat-input" id="chatForm" autocomplete="off">
+              <label for="chatInput" style="position:absolute;left:-9999px">Type your question</label>
+              <input id="chatInput" type="text" maxlength="500" placeholder="Ask about voting, ballots, primaries…" required />
+              <button type="submit" id="sendBtn" aria-label="Send message">Send</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== GLOSSARY ============== -->
+    <section id="glossary" class="glossary-section" aria-labelledby="glossary-title">
+      <div class="container">
+        <div class="section-title reveal">
+          <div>
+            <span class="eyebrow">22 essential terms</span>
+            <h2 id="glossary-title">Election Glossary</h2>
+          </div>
+        </div>
+        <div class="search-wrap reveal">
+          <input type="search" id="searchInput" placeholder="Search terms…" aria-label="Search glossary terms" />
+        </div>
+        <div class="filters reveal" id="filters" role="group" aria-label="Filter by category"></div>
+        <div class="glossary-grid" id="glossaryGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============== STATS ============== -->
+    <section id="stats" class="stats-section" aria-labelledby="stats-title">
+      <div class="container">
+        <div class="section-title reveal">
+          <div>
+            <span class="eyebrow">By the numbers</span>
+            <h2 id="stats-title">Elections Around the World</h2>
+          </div>
+        </div>
+        <div class="metrics reveal-stagger reveal" id="metrics"></div>
+        <div class="charts-grid">
+          <div class="chart-card reveal" id="barChartCard">
+            <h3>Voter Turnout by Region</h3>
+            <div id="bars"></div>
+          </div>
+          <div class="chart-card reveal">
+            <h3>Voting Systems Worldwide</h3>
+            <div class="donut-wrap">
+              <div class="donut" role="img" aria-label="42% First Past Post, 38% Proportional, 14% Mixed, 6% Other"></div>
+              <ul class="legend">
+                <li><span class="swatch" style="background:#1a3c5e"></span> First Past Post — 42%</li>
+                <li><span class="swatch" style="background:#2a7d4f"></span> Proportional — 38%</li>
+                <li><span class="swatch" style="background:#e8a020"></span> Mixed — 14%</li>
+                <li><span class="swatch" style="background:#6c3483"></span> Other — 6%</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============== FOOTER ============== -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo" style="color:#fff;margin-bottom:.6rem">Elect🗳️Ed</div>
+          <p class="footer-tag">Making democracy understandable, one voter at a time.</p>
+          <div class="socials" aria-label="Social links">
+            <a href="#" aria-label="Twitter">🐦</a>
+            <a href="#" aria-label="Share link">🔗</a>
+            <a href="#" aria-label="Email">📧</a>
+          </div>
+        </div>
+        <div>
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#timeline">Timeline</a></li>
+            <li><a href="#quiz">Quiz</a></li>
+            <li><a href="#assistant">AI Assistant</a></li>
+            <li><a href="#glossary">Glossary</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#stats">Global Stats</a></li>
+            <li><a href="#glossary">Civic Terms</a></li>
+            <li><a href="#timeline">Election Phases</a></li>
+            <li><a href="#assistant">Ask Anything</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Powered By</h4>
+          <ul>
+            <li>Google Gemini</li>
+            <li>Google Fonts</li>
+            <li>Firebase</li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">© 2025 ElectEd · Built for PromptWars Virtual · Hack2Skill × Google for Developers</div>
+    </div>
+  </footer>
+
+  <script>
+    /* =========================================================
+     * ElectEd — interactive single-page experience
+     * Powered by Google Gemini API (proxied securely server-side)
+     * ========================================================= */
+    "use strict";
+
+    /* ============== DATA ============== */
+    const PHASES = [
+      {n:1,emoji:"🏛️",title:"Candidate Filing & Primaries",color:"#1a3c5e",date:"Months Before",
+        desc:"Candidates officially file their intent to run for office. Political parties hold primary elections to select their nominees. Voters within each party choose who represents them in the general election."},
+      {n:2,emoji:"📋",title:"Voter Registration",color:"#2a7d4f",date:"Ongoing Deadlines",
+        desc:"Citizens must register before the deadline to appear on the official voter roll. Requirements include proof of citizenship, minimum age of 18, and residency proof. Some regions allow same-day or automatic voter registration."},
+      {n:3,emoji:"📣",title:"Campaigning & Debates",color:"#e8a020",date:"Weeks Before",
+        desc:"Candidates travel, advertise, and hold public rallies to earn votes. Official debates allow candidates to present and defend their positions. Campaign finance laws strictly regulate how money is raised and spent."},
+      {n:4,emoji:"🗳️",title:"Voting — Election Day",color:"#c0392b",date:"Election Day",
+        desc:"Registered voters visit their designated polling place to cast their ballot. Voting methods include in-person, mail-in, and early voting options. Official observers from all parties monitor the process for transparency."},
+      {n:5,emoji:"🔢",title:"Counting & Canvassing",color:"#6c3483",date:"Days After",
+        desc:"All ballots including provisional and mail-in are officially counted. The canvass is a formal review of every vote cast in the jurisdiction. Recounts may be triggered automatically when margins fall below 0.5%."},
+      {n:6,emoji:"✅",title:"Certification & Transition",color:"#1a5276",date:"Weeks After",
+        desc:"Government authorities formally certify the final election results. All legal challenges must be resolved before certification is complete. The winner is inaugurated and power transfers peacefully — democracy's hallmark."}
+    ];
+
+    const QUESTIONS = [
+      {q:"What is the main purpose of a primary election?",
+        a:["To elect the final winner","To select a party's nominee","To register voters","To certify results"],
+        correct:1,
+        ex:"Primary elections allow party members to choose who will represent their party in the general election."},
+      {q:"What is voter registration?",
+        a:["Casting a ballot","Counting votes","Signing up on the official voter list","Joining a political party"],
+        correct:2,
+        ex:"Voter registration adds your name to the official roll so you can vote on Election Day."},
+      {q:"What is an absentee ballot?",
+        a:["A ballot from a previous election","A vote cast by mail when you can't attend","A protest vote","A blank ballot"],
+        correct:1,
+        ex:"Absentee ballots let voters cast a vote by mail when they can't be at their polling place in person."},
+      {q:"What is a recount typically triggered by?",
+        a:["A presidential request","A very narrow vote margin","Bad weather","High turnout"],
+        correct:1,
+        ex:"Recounts are usually automatic when the margin between candidates is extremely close, often under 0.5%."},
+      {q:"What is gerrymandering?",
+        a:["Counting votes twice","Manipulating district boundaries for advantage","Holding a runoff","A type of ballot"],
+        correct:1,
+        ex:"Gerrymandering means redrawing electoral district boundaries to give one party an unfair advantage."},
+      {q:"What is the Electoral College?",
+        a:["A school for politicians","Electors who formally elect the US President","A polling place","A vote-counting machine"],
+        correct:1,
+        ex:"The Electoral College is the body of electors who officially cast votes for US President and Vice President."},
+      {q:"What does 'suffrage' mean?",
+        a:["Election fraud","The right to vote","A campaign ad","A polling station"],
+        correct:1,
+        ex:"Suffrage refers to the legal right to vote in public elections."},
+      {q:"What is voter turnout?",
+        a:["A campaign rally","Percentage of eligible voters who voted","The cost of voting","A political party"],
+        correct:1,
+        ex:"Voter turnout measures the share of eligible citizens who actually cast a ballot."},
+      {q:"What is a runoff election?",
+        a:["A practice election","A follow-up election when no candidate wins a majority","An online vote","A recount"],
+        correct:1,
+        ex:"A runoff is a second-round election held when no candidate reaches the required majority in the first round."},
+      {q:"What does 'certification' mean in elections?",
+        a:["Approving a candidate","Legal confirmation of the final results","Opening polling places","Registering to vote"],
+        correct:1,
+        ex:"Certification is the formal legal confirmation of the final election results by government authorities."}
+    ];
+
+    const TERMS = [
+      ["Absentee Ballot","Voting","A vote cast by mail when a voter cannot attend in person."],
+      ["Ballot","Voting","The method by which voters record their choices in an election."],
+      ["Candidate","People","A person who seeks election to a public office."],
+      ["Canvass","Counting","Official review and tabulation of all votes after an election."],
+      ["Caucus","Process","A party meeting to select candidates or decide policy positions."],
+      ["Certification","Process","Formal legal confirmation of election results by authorities."],
+      ["Constituency","Structure","The body of voters represented by a particular elected official."],
+      ["Electoral College","Structure","Body of electors who formally elect the US President and VP."],
+      ["Exit Poll","Stats","Survey of voters right after voting, used to forecast results."],
+      ["Franchise","Rights","The legal right to vote in public elections; also called suffrage."],
+      ["Gerrymandering","Politics","Manipulating district boundaries to advantage one political party."],
+      ["Incumbent","People","The current officeholder running for re-election."],
+      ["Polling Place","Voting","Official location where voters cast ballots on Election Day."],
+      ["Precinct","Structure","A geographic subdivision used for electoral administration."],
+      ["Primary Election","Process","An intra-party election to choose a party nominee."],
+      ["Proportional Representation","Systems","Seats allocated based on each party's vote share."],
+      ["Recount","Counting","Re-tabulation of votes when the margin is very slim."],
+      ["Runoff Election","Process","Follow-up election when no candidate wins required majority."],
+      ["Suffrage","Rights","The right to vote in political elections."],
+      ["Voter Registration","Voting","Signing up on the official voter list before voting."],
+      ["Voter Turnout","Stats","Percentage of eligible voters who actually cast a ballot."],
+      ["Write-in Candidate","Voting","A candidate not on ballot whose name voters write manually."]
+    ];
+
+    const METRICS = [
+      {value:193,label:"UN Member States",format:n=>String(Math.round(n))},
+      {value:123,label:"Democracies Worldwide",format:n=>String(Math.round(n))},
+      {value:4_200_000_000,label:"Eligible Voters",format:n=>(n/1e9).toFixed(1)+"B"},
+      {value:62,label:"Avg Turnout",format:n=>Math.round(n)+"%"}
+    ];
+
+    const REGIONS = [
+      {name:"Oceania",pct:80,color:"#1a5276"},
+      {name:"Europe",pct:72,color:"#1a3c5e"},
+      {name:"South America",pct:68,color:"#2a7d4f"},
+      {name:"Asia",pct:62,color:"#6c3483"},
+      {name:"Africa",pct:58,color:"#c0392b"},
+      {name:"North America",pct:55,color:"#e8a020"}
+    ];
+
+    const QUICK_PROMPTS = [
+      "What is gerrymandering?",
+      "How does the Electoral College work?",
+      "Why do primary elections matter?",
+      "What's the difference between mail-in and absentee voting?"
+    ];
+
+    /* ============== UTIL ============== */
+    const $ = (sel,root=document) => root.querySelector(sel);
+    const $$ = (sel,root=document) => Array.from(root.querySelectorAll(sel));
+    const el = (tag,attrs={},...children) => {
+      const node = document.createElement(tag);
+      for (const [k,v] of Object.entries(attrs)){
+        if (k === "class") node.className = v;
+        else if (k === "style") node.setAttribute("style", v);
+        else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
+        else if (v === true) node.setAttribute(k,"");
+        else if (v !== false && v != null) node.setAttribute(k,v);
+      }
+      for (const child of children){
+        if (child == null || child === false) continue;
+        node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+      }
+      return node;
+    };
+
+    /* ============== NAV: scroll state + mobile menu + active link ============== */
+    function initNav(){
+      const nav = $("#nav");
+      const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 30);
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive:true });
+
+      const ham = $("#hamburger");
+      const mobile = $("#mobileNav");
+      const close = $("#closeMenu");
+      const openMobile = () => { mobile.classList.add("open"); ham.setAttribute("aria-expanded","true"); document.body.style.overflow="hidden"; };
+      const closeMobile = () => { mobile.classList.remove("open"); ham.setAttribute("aria-expanded","false"); document.body.style.overflow=""; };
+      ham.addEventListener("click", openMobile);
+      close.addEventListener("click", closeMobile);
+      $$("#mobileNav a").forEach(a => a.addEventListener("click", closeMobile));
+      document.addEventListener("keydown", e => { if (e.key === "Escape") closeMobile(); });
+    }
+
+    /* ============== TIMELINE rendering ============== */
+    function renderTimeline(){
+      const container = $("#timelineList");
+      PHASES.forEach(p => {
+        const item = el("div",{class:"tl-item reveal", style:`--phase:${p.color}`},
+          el("article",{class:"tl-card"},
+            el("span",{class:"date"}, p.date),
+            el("h3",{}, `${p.emoji}  ${p.title}`),
+            el("p",{}, p.desc)
+          ),
+          el("div",{class:"tl-circle","aria-hidden":"true"}, p.n),
+          el("div",{class:"tl-spacer","aria-hidden":"true"})
+        );
+        container.append(item);
+      });
+    }
+
+    /* ============== QUIZ ============== */
+    const quizState = { i:0, score:0, answered:false };
+    function renderQuiz(){
+      const card = $("#quizCard");
+      card.replaceChildren();
+      if (quizState.i >= QUESTIONS.length){ renderResult(); return; }
+      const q = QUESTIONS[quizState.i];
+      const pct = ((quizState.i)/QUESTIONS.length)*100;
+
+      const progress = el("div",{class:"progress"},
+        el("span",{}, `Question ${quizState.i+1} of ${QUESTIONS.length}`),
+        el("span",{}, `Score: ${quizState.score}`)
+      );
+      const bar = el("div",{class:"progress-bar"}, el("div",{style:`width:${pct}%`}));
+      const question = el("div",{class:"question"}, q.q);
+      const optionsWrap = el("div",{class:"options",role:"radiogroup","aria-label":"Answer choices"});
+
+      q.a.forEach((text, idx) => {
+        const btn = el("button",{
+          type:"button",class:"option",role:"radio","aria-checked":"false",
+          onclick: () => onAnswer(btn, idx, q, optionsWrap)
+        }, text);
+        optionsWrap.append(btn);
+      });
+
+      card.append(progress, bar, question, optionsWrap);
+    }
+    function onAnswer(btn, idx, q, optionsWrap){
+      if (quizState.answered) return;
+      quizState.answered = true;
+      const buttons = $$("button.option", optionsWrap);
+      buttons.forEach((b,i) => {
+        b.disabled = true;
+        if (i === q.correct) b.classList.add("correct");
+        if (i === idx && idx !== q.correct) b.classList.add("wrong");
+      });
+      if (idx === q.correct) quizState.score += 1;
+
+      const ex = el("div",{class:"explanation"}, q.ex);
+      const actions = el("div",{class:"quiz-actions"},
+        el("button",{class:"btn btn-primary",type:"button",onclick: nextQuestion},
+          quizState.i < QUESTIONS.length - 1 ? "Next Question →" : "See Results →")
+      );
+      $("#quizCard").append(ex, actions);
+    }
+    function nextQuestion(){
+      quizState.i += 1;
+      quizState.answered = false;
+      renderQuiz();
+    }
+    function renderResult(){
+      const card = $("#quizCard");
+      card.replaceChildren();
+      const pct = (quizState.score/QUESTIONS.length)*100;
+      const emoji = pct >= 80 ? "🏆" : pct >= 60 ? "🎉" : pct >= 40 ? "📚" : "🌱";
+      const msg = pct >= 80 ? "Outstanding! You really know your civics."
+                : pct >= 60 ? "Great job — solid grasp of the basics."
+                : pct >= 40 ? "Not bad — keep exploring the timeline and glossary."
+                : "Just getting started — try the timeline and glossary, then come back!";
+      const result = el("div",{class:"result-card"},
+        el("div",{class:"result-emoji","aria-hidden":"true"}, emoji),
+        el("div",{class:"result-score"}, `${quizState.score} / ${QUESTIONS.length}`),
+        el("p",{class:"result-msg"}, msg),
+        el("button",{class:"btn btn-primary",type:"button",onclick:resetQuiz}, "Try Again")
+      );
+      card.append(result);
+    }
+    function resetQuiz(){
+      quizState.i = 0; quizState.score = 0; quizState.answered = false;
+      renderQuiz();
+    }
+
+    /* ============== AI CHAT (server-proxied Gemini) ============== */
+    // Powered by Google Gemini API
+    const chatHistory = [];
+    function appendMessage(role, text){
+      const msgEl = el("div",{class:`msg ${role==="user"?"user":"bot"}`}, text);
+      $("#chatMessages").append(msgEl);
+      $("#chatMessages").scrollTop = $("#chatMessages").scrollHeight;
+      return msgEl;
+    }
+    function appendTyping(){
+      const dots = el("div",{class:"msg bot","aria-label":"Assistant is typing"},
+        el("span",{class:"typing","aria-hidden":"true"},
+          el("span",{}), el("span",{}), el("span",{})
+        )
+      );
+      $("#chatMessages").append(dots);
+      $("#chatMessages").scrollTop = $("#chatMessages").scrollHeight;
+      return dots;
+    }
+    async function sendMessage(text){
+      const cleaned = text.trim().slice(0,500);
+      if (!cleaned) return;
+      appendMessage("user", cleaned);
+      chatHistory.push({ role:"user", content: cleaned });
+      const sendBtn = $("#sendBtn");
+      const input = $("#chatInput");
+      sendBtn.disabled = true; input.disabled = true;
+      const typingEl = appendTyping();
+      try{
+        const res = await fetch("api/chat", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ messages: chatHistory.slice(-12) })
+        });
+        typingEl.remove();
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const reply = (data && typeof data.reply === "string" && data.reply.trim()) || "Sorry, I couldn't generate a reply just now. Please try again.";
+        appendMessage("bot", reply);
+        chatHistory.push({ role:"assistant", content: reply });
+      } catch(err){
+        typingEl.remove();
+        appendMessage("bot", "I had trouble reaching the assistant. Please check your connection and try again.");
+      } finally {
+        sendBtn.disabled = false; input.disabled = false; input.value = ""; input.focus();
+      }
+    }
+    function initChat(){
+      appendMessage("bot", "Hi! I'm ElectEd. Ask me anything about elections, voting, or how the process works.");
+      const prompts = $("#quickPrompts");
+      QUICK_PROMPTS.forEach(p => {
+        prompts.append(el("button",{class:"chip",type:"button",onclick:() => sendMessage(p)}, p));
+      });
+      $("#chatForm").addEventListener("submit", e => {
+        e.preventDefault();
+        sendMessage($("#chatInput").value);
+      });
+    }
+
+    /* ============== GLOSSARY ============== */
+    const glossaryState = { search:"", category:"All" };
+    function categories(){
+      const set = new Set(["All"]);
+      TERMS.forEach(t => set.add(t[1]));
+      return Array.from(set);
+    }
+    function renderFilters(){
+      const wrap = $("#filters");
+      categories().forEach(cat => {
+        const btn = el("button",{
+          type:"button",
+          class:"filter" + (cat === glossaryState.category ? " active" : ""),
+          onclick: () => { glossaryState.category = cat; renderFilters(); renderGlossary(); }
+        }, cat);
+        wrap.append(btn);
+      });
+    }
+    function renderFiltersUpdate(){
+      $("#filters").replaceChildren();
+      renderFilters();
+    }
+    function renderGlossary(){
+      const grid = $("#glossaryGrid");
+      grid.replaceChildren();
+      const q = glossaryState.search.toLowerCase().trim();
+      const filtered = TERMS.filter(([term,cat,def]) => {
+        const matchCat = glossaryState.category === "All" || cat === glossaryState.category;
+        const matchQ = !q || term.toLowerCase().includes(q) || def.toLowerCase().includes(q);
+        return matchCat && matchQ;
+      });
+      if (!filtered.length){
+        grid.append(el("div",{class:"empty"}, "No terms match your search."));
+        return;
+      }
+      filtered.forEach(([term,cat,def], i) => {
+        const card = el("article",{class:"term-card",style:`opacity:0;transform:translateY(8px);transition:opacity .4s ease ${i*30}ms,transform .4s ease ${i*30}ms`},
+          el("h3",{}, term),
+          el("p",{}, def),
+          el("span",{class:"pill"}, cat)
+        );
+        grid.append(card);
+        requestAnimationFrame(() => { card.style.opacity = "1"; card.style.transform = "none"; });
+      });
+    }
+    function initGlossary(){
+      renderFilters();
+      renderGlossary();
+      $("#searchInput").addEventListener("input", e => {
+        glossaryState.search = e.target.value;
+        renderGlossary();
+      });
+      $("#filters").replaceChildren();
+      renderFilters();
+    }
+
+    /* ============== STATS: counters + bars ============== */
+    function renderMetrics(){
+      const wrap = $("#metrics");
+      METRICS.forEach(m => {
+        wrap.append(el("div",{class:"metric"},
+          el("div",{class:"metric-value","data-target":m.value,"data-format":""+METRICS.indexOf(m)}, m.format(0)),
+          el("div",{class:"metric-label"}, m.label)
+        ));
+      });
+    }
+    function animateCount(node, target, fmt, duration=1600){
+      const start = performance.now();
+      function step(now){
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        node.textContent = fmt(target * eased);
+        if (t < 1) requestAnimationFrame(step);
+        else node.textContent = fmt(target);
+      }
+      requestAnimationFrame(step);
+    }
+    function renderBars(){
+      const wrap = $("#bars");
+      REGIONS.forEach(r => {
+        const fill = el("div",{class:"bar-fill",style:`background:${r.color}`});
+        wrap.append(el("div",{class:"bar-row"},
+          el("div",{class:"label"}, r.name),
+          el("div",{class:"bar-track"}, fill),
+          el("div",{class:"pct"}, r.pct + "%")
+        ));
+      });
+    }
+
+    /* ============== INTERSECTION OBSERVERS ============== */
+    function initObservers(){
+      // Reveal on scroll
+      const revealObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting){
+            e.target.classList.add("in");
+            revealObs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      $$(".reveal").forEach(node => revealObs.observe(node));
+
+      // Stats counters (run once)
+      const metricsObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting){
+            $$("#metrics .metric-value").forEach((node, idx) => animateCount(node, METRICS[idx].value, METRICS[idx].format));
+            metricsObs.disconnect();
+          }
+        });
+      }, { threshold: 0.4 });
+      const metricsEl = $("#metrics");
+      if (metricsEl) metricsObs.observe(metricsEl);
+
+      // Bar chart animation (run once)
+      const barsObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting){
+            $$("#bars .bar-fill").forEach((fill, i) => {
+              setTimeout(() => fill.style.width = REGIONS[i].pct + "%", 80*i);
+            });
+            barsObs.disconnect();
+          }
+        });
+      }, { threshold: 0.3 });
+      const barsCard = $("#barChartCard");
+      if (barsCard) barsObs.observe(barsCard);
+
+      // Active nav link based on visible section
+      const sections = ["home","timeline","quiz","assistant","glossary","stats"]
+        .map(id => document.getElementById(id)).filter(Boolean);
+      const navObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting){
+            const id = e.target.id;
+            $$("#navLinks a").forEach(a => a.classList.toggle("active", a.dataset.section === id));
+          }
+        });
+      }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
+      sections.forEach(s => navObs.observe(s));
+    }
+
+    /* ============== BOOT ============== */
+    document.addEventListener("DOMContentLoaded", () => {
+      initNav();
+      renderTimeline();
+      renderQuiz();
+      initChat();
+      initGlossary();
+      renderMetrics();
+      renderBars();
+      initObservers();
+    });
+  </script>
+</body>
+</html>
