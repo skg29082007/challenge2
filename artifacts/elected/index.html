@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="ElectEd — an interactive, AI-powered guide to understanding the election process, timelines and steps. Built for PromptWars Virtual." />
   <meta name="theme-color" content="#1a3c5e" />
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self';
-             connect-src 'self' ws: wss:;
-             font-src 'self' https://fonts.gstatic.com data:;
-             img-src 'self' data: https://i.ytimg.com;
-             script-src 'self' 'unsafe-inline';
-             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-             frame-src https://www.youtube-nocookie.com;
-             frame-ancestors *;
-             base-uri 'self';" />
+  <!--
+    NOTE: Strong security headers (CSP, HSTS, X-Frame-Options, Referrer-Policy,
+    Permissions-Policy, X-Content-Type-Options) are set by the Vite security
+    plugin in `vite-security-headers.ts` so they are delivered as real HTTP
+    headers. Browsers ignore some directives (frame-ancestors, report-uri,
+    sandbox, ...) when supplied via <meta>, which is why headers win.
+  -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>ElectEd · Understand How Elections Work</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%231a3c5e'/><text x='50%25' y='58%25' text-anchor='middle' font-size='38' font-family='Georgia,serif' fill='%23e8a020'>E</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />

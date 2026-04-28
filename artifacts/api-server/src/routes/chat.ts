@@ -1,21 +1,34 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { ai } from "@workspace/integrations-gemini-ai";
 import { z } from "zod";
+import { ValidationError, UpstreamError } from "../lib/errors";
+import { aiRateLimiter, strictRateLimiter } from "../middlewares/security";
 
 const router: IRouter = Router();
 
-const messageSchema = z.object({
-  role: z.enum(["user", "assistant"]),
-  content: z.string().min(1).max(2000),
-});
+/**
+ * Strict request schemas. `.strict()` rejects any unknown fields so a
+ * misbehaving client cannot smuggle extra data through.
+ */
+const messageSchema = z
+  .object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().trim().min(1).max(2000),
+  })
+  .strict();
 
-const chatRequestSchema = z.object({
-  messages: z.array(messageSchema).min(1).max(40),
-});
+const chatRequestSchema = z
+  .object({
+    messages: z.array(messageSchema).min(1).max(40),
+  })
+  .strict();
 
-const explainRequestSchema = z.object({
-  term: z.string().min(1).max(80),
-});
+const explainRequestSchema = z
+  .object({
+    term: z.string().trim().min(1).max(80),
+    definition: z.string().trim().max(400).optional(),
+  })
+  .strict();
 
 const SYSTEM_PROMPT =
   "You are ElectEd, a friendly nonpartisan election education assistant. " +
@@ -29,23 +42,31 @@ const GLOSSARY_PROMPT =
   "Given a single election-related term, write a concise (max 60 words), neutral, plain-language explanation suitable for a first-time voter. " +
   "Do not use markdown formatting. Do not list multiple definitions. Output only the explanation.";
 
+// Re-exported for unit tests so we can validate the same schemas the server uses.
 export const chatRequestSchemaForTesting = chatRequestSchema;
 export const explainRequestSchemaForTesting = explainRequestSchema;
 
-router.post("/chat", async (req, res) => {
+/**
+ * Convert ElectEd chat messages into the Gemini `Content[]` format.
+ * Centralized so streaming and non-streaming endpoints stay in sync.
+ */
+function toGeminiContents(messages: z.infer<typeof messageSchema>[]) {
+  return messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+}
+
+router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
   const parsed = chatRequestSchema.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: "Invalid request body" });
-    return;
+    throw new ValidationError(parsed.error.flatten());
   }
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: parsed.data.messages.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      })),
+      contents: toGeminiContents(parsed.data.messages),
       config: {
         systemInstruction: SYSTEM_PROMPT,
         maxOutputTokens: 8192,
@@ -57,15 +78,14 @@ router.post("/chat", async (req, res) => {
     res.json({ reply: text });
   } catch (err) {
     req.log.error({ err }, "Gemini chat failed");
-    res.status(502).json({ error: "AI service unavailable" });
+    throw new UpstreamError();
   }
 });
 
-router.post("/chat/stream", async (req, res) => {
+router.post("/chat/stream", strictRateLimiter, async (req: Request, res: Response) => {
   const parsed = chatRequestSchema.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: "Invalid request body" });
-    return;
+    throw new ValidationError(parsed.error.flatten());
   }
 
   res.setHeader("Content-Type", "text/event-stream");
@@ -81,10 +101,7 @@ router.post("/chat/stream", async (req, res) => {
   try {
     const stream = await ai.models.generateContentStream({
       model: "gemini-2.5-flash",
-      contents: parsed.data.messages.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      })),
+      contents: toGeminiContents(parsed.data.messages),
       config: {
         systemInstruction: SYSTEM_PROMPT,
         maxOutputTokens: 8192,
@@ -105,11 +122,10 @@ router.post("/chat/stream", async (req, res) => {
   }
 });
 
-router.post("/glossary/explain", async (req, res) => {
+router.post("/glossary/explain", aiRateLimiter, async (req: Request, res: Response) => {
   const parsed = explainRequestSchema.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: "Invalid request body" });
-    return;
+    throw new ValidationError(parsed.error.flatten());
   }
 
   try {
@@ -132,7 +148,7 @@ router.post("/glossary/explain", async (req, res) => {
     res.json({ term: parsed.data.term, explanation: text });
   } catch (err) {
     req.log.error({ err }, "Gemini glossary explain failed");
-    res.status(502).json({ error: "AI service unavailable" });
+    throw new UpstreamError();
   }
 });
 

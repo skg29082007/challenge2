@@ -19,6 +19,8 @@
     "compression": "^1.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.2.0",
     "drizzle-orm": "catalog:",
     "express": "^5",
     "pino": "^9",

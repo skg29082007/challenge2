@@ -30,16 +30,31 @@ An interactive, AI-powered education site that explains how elections work — b
 - **Frontend:** Single-file vanilla HTML / CSS / JS (`artifacts/elected/index.html`) — zero framework, fast first paint, accessible.
 - **Backend:** Express + TypeScript (`artifacts/api-server/`) with `pino-http` logging, `helmet`, `compression`, and Zod request validation.
 - **AI:** `@google/genai` via Replit's Gemini AI integration proxy.
-- **Tests:** Vitest + Supertest (24 tests covering health, chat, streaming, glossary explain, validation, and error paths).
+- **Tests:** Vitest + Supertest (48 tests covering health, chat, streaming, glossary explain, validation, security headers, rate limiting, error handling, and CORS).
 - **Monorepo:** pnpm workspace with shared TS configs and project references.
 
 ## Security & quality
 
-- Strict Content Security Policy (`default-src 'self'`, `frame-src https://www.youtube-nocookie.com`).
-- Helmet, response compression, 100 KB JSON body limit.
-- Zod validation on every API endpoint with structured 400 responses.
-- WCAG 2.1 AA: skip links, ARIA live regions, keyboard-navigable modal with focus restore, high-contrast palette.
-- No third-party trackers, no cookies in YouTube embeds.
+**API server (`artifacts/api-server`):**
+- **Helmet** sets HSTS (1y), Cross-Origin-Resource-Policy, Cross-Origin-Opener-Policy, Referrer-Policy, X-Content-Type-Options, X-Frame-Options: DENY.
+- **Permissions-Policy** disables geolocation, camera, microphone, payment, USB, magnetometer.
+- **express-rate-limit** — 30 req/min per IP for chat/explain, 10 req/min for streaming. Honors `X-Forwarded-For` behind Replit's proxy.
+- **Zod with `.strict()`** rejects unknown fields, enforces min/max bounds.
+- **Custom error classes** (`AppError`, `ValidationError`, `UpstreamError`) → centralized error middleware emits consistent `{ error, code, details? }` JSON. Stack traces never leak in production.
+- **Request-ID middleware** assigns/forwards `X-Request-Id` for log correlation.
+- 100 KB JSON body limit (returns structured 413), `x-powered-by` disabled, response compression (skips SSE), CORS preflight handled.
+
+**Static site (`artifacts/elected`):**
+- **CSP delivered as a real HTTP header** via a custom Vite plugin (`vite-security-headers.ts`), not a `<meta>` tag — so `frame-ancestors`, `form-action`, `object-src 'none'`, and `upgrade-insecure-requests` actually take effect.
+- HSTS, X-Content-Type-Options: nosniff, Referrer-Policy, Permissions-Policy on every response.
+- WCAG 2.1 AA: skip-to-content link, ARIA live regions, keyboard-trappable modal with focus restore, `prefers-reduced-motion` respected, high-contrast palette, semantic landmarks.
+- No third-party trackers; YouTube uses `youtube-nocookie.com`.
+
+**Test coverage (Vitest + Supertest, 48 tests):**
+- Health checks, chat happy-path, role mapping, system prompt, streaming SSE, glossary explain.
+- Strict-mode schema validation (extra-field rejection, length bounds).
+- Security headers, request-ID echoing, oversized payload (413), 404 shape, CORS preflight.
+- Error path coverage for AI service failures (502 with `UPSTREAM_ERROR`).
 
 ## Local development
 
